@@ -1,43 +1,15 @@
 {
   "version": 2,
-  "name": "sankeyserver",
   "builds": [
     {
       "src": "src/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/ws",
-      "dest": "/src/index.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/src/index.js"
-    },
-    {
-      "src": "/health",
-      "dest": "/src/index.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/src/public/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/src/index.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "src/index.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
