@@ -17,6 +17,25 @@ const server = http.createServer(app);
 // Validate environment configuration
 validateEnvironment();
 
+// Public health endpoint - must be before any middleware
+app.get('/public-status', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.json({
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    environment: process.env.NODE_ENV,
+    config: {
+      domain: process.env.TP_DOMAIN,
+      hasUsername: !!process.env.TP_USERNAME,
+      hasPassword: !!process.env.TP_PASSWORD,
+      hasApiToken: !!process.env.TP_API_TOKEN
+    }
+  });
+});
+
 // Security middleware with CSP for D3.js and Vercel deployment
 app.use(helmet({
   contentSecurityPolicy: {
