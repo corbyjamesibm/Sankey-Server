@@ -17,19 +17,19 @@ const server = http.createServer(app);
 // Validate environment configuration
 validateEnvironment();
 
-// Security middleware with CSP for D3.js
+// Security middleware with CSP for D3.js and Vercel deployment
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://d3js.org", "https://unpkg.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "ws:", "wss:", "https:"],
-      frameSrc: ["'self'", "https:"],
+      defaultSrc: ["'self'", "*.vercel.app"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "*.vercel.app"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://d3js.org", "https://unpkg.com", "*.vercel.app"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "*.vercel.app"],
+      imgSrc: ["'self'", "data:", "https:", "*.vercel.app"],
+      connectSrc: ["'self'", "ws:", "wss:", "https:", "*.vercel.app"],
+      frameSrc: ["'self'", "https:", "*.vercel.app"],
       objectSrc: ["'none'"],
-      mediaSrc: ["'self'"]
+      mediaSrc: ["'self'", "*.vercel.app"]
     }
   },
   crossOriginEmbedderPolicy: false
@@ -38,15 +38,30 @@ app.use(helmet({
 // CORS configuration for TargetProcess integration
 const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
+    // In production, allow Vercel domains and configured origins
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+      'http://localhost:3000',
+      'https://sankeyserver-3zotqlplm-corby-james-projects.vercel.app',
+      'https://sankeyserver-io2sg2f44-corby-james-projects.vercel.app'
+    ];
     
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
+    // Allow all Vercel preview URLs
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // In development, be more permissive
+      if (process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true,
