@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "targetprocess-d3-visualization-server",
+  "name": "sankeyserver",
   "builds": [
     {
       "src": "src/index.js",
