@@ -93,6 +93,36 @@ app.get('/test', (req, res) => {
   });
 });
 
+// Debug endpoint for TargetProcess connection
+app.get('/debug/tp', async (req, res) => {
+  try {
+    const { getMCPClient } = require('./mcp');
+    const mcpClient = getMCPClient();
+    
+    const result = await mcpClient.testConnection();
+    
+    res.json({
+      success: result.success,
+      error: result.error,
+      config: {
+        domain: process.env.TP_DOMAIN,
+        hasUsername: !!process.env.TP_USERNAME,
+        hasPassword: !!process.env.TP_PASSWORD,
+        hasApiToken: !!process.env.TP_API_TOKEN,
+        nodeEnv: process.env.NODE_ENV
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // API routes
 app.use('/api', apiRoutes);
 
