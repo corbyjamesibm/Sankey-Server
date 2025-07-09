@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Visualization</title>
+    <link rel="stylesheet" href="/static/css/embed.css">
+</head>
+<body>
+    <div id="embed-container" class="embed-container">
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading visualization...</p>
+        </div>
+    </div>
+
+    <script>
+        // Get visualization ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const vizId = urlParams.get('id');
+        
+        if (vizId) {
+            // Fetch and display the visualization
+            fetch(`/api/visualizations/${vizId}?embed=true`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('embed-container').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading visualization:', error);
+                    document.getElementById('embed-container').innerHTML = 
+                        '<div class="error">Failed to load visualization</div>';
+                });
+        } else {
+            document.getElementById('embed-container').innerHTML = 
+                '<div class="error">No visualization ID provided</div>';
+        }
+    </script>
+</body>
+</html>

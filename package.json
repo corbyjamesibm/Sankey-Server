@@ -1,0 +1,56 @@
+{
+  "name": "targetprocess-d3-visualization-server",
+  "version": "1.0.0",
+  "description": "D3.js visualization server for TargetProcess with embedded MCP client and real-time updates",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "mkdir -p dist/public && cp -r src/public/* dist/public/",
+    "build:server": "mkdir -p dist/src && cp -r src/*.js dist/src/",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "d3",
+    "visualization",
+    "sankey",
+    "targetprocess",
+    "mcp",
+    "dashboard",
+    "real-time"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "dotenv": "^16.3.1",
+    "ws": "^8.14.2",
+    "joi": "^17.11.0",
+    "uuid": "^9.0.1",
+    "node-cache": "^5.1.2",
+    "node-fetch": "^2.7.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.56.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "supertest": "^6.3.3",
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
