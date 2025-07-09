@@ -104,3 +104,4 @@ temp/
 
 # Vercel
 .vercel
+.env*.local

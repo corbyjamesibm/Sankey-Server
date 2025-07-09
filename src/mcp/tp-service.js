@@ -163,12 +163,30 @@ class TPService {
     const { type, where, include = [], orderBy = [], take = 100 } = params;
 
     const operation = async () => {
-      const whereClause = typeof where === 'string' ? `?where=${encodeURIComponent(where)}` : this.buildWhereClause(where);
+      let queryParams = [`take=${take}`, `format=json`];
+      
+      if (where) {
+        if (typeof where === 'string') {
+          queryParams.push(`where=${encodeURIComponent(where)}`);
+        } else {
+          const whereClause = this.buildWhereClause(where);
+          if (whereClause) {
+            queryParams.push(whereClause.substring(1)); // Remove the leading '?'
+          }
+        }
+      }
+      
       const includeClause = this.buildIncludeClause(include);
+      if (includeClause) {
+        queryParams.push(includeClause.substring(1)); // Remove the leading '&'
+      }
+      
       const orderByClause = this.buildOrderByClause(orderBy);
-      const takeClause = `&take=${take}`;
+      if (orderByClause) {
+        queryParams.push(orderByClause.substring(1)); // Remove the leading '&'
+      }
 
-      const url = `${this.baseUrl}/${type}${whereClause}${includeClause}${orderByClause}${takeClause}`;
+      const url = `${this.baseUrl}/${type}?${queryParams.join('&')}`;
       const headers = this.getAuthHeaders();
 
       const response = await fetch(url, { headers });
@@ -180,8 +198,14 @@ class TPService {
 
   async getEntity(type, id, include = []) {
     const operation = async () => {
+      let queryParams = [`format=json`];
+      
       const includeClause = this.buildIncludeClause(include);
-      const url = `${this.baseUrl}/${type}/${id}${includeClause ? `?${includeClause.substring(1)}` : ''}`;
+      if (includeClause) {
+        queryParams.push(includeClause.substring(1)); // Remove the leading '&'
+      }
+      
+      const url = `${this.baseUrl}/${type}/${id}?${queryParams.join('&')}`;
       const headers = this.getAuthHeaders();
 
       const response = await fetch(url, { headers });
@@ -285,7 +309,12 @@ class TPService {
         type: 'Project',
         take: 1
       });
-      return { success: true, data: response };
+      return { 
+        success: true, 
+        data: response,
+        count: response?.Items?.length || 0,
+        message: `Found ${response?.Items?.length || 0} project(s)`
+      };
     } catch (error) {
       return { success: false, error: error.message };
     }
