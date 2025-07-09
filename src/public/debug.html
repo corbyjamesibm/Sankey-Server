@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TargetProcess Debug - Sankey Server</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .debug-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .debug-section h2 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .status-online {
+            background: #27ae60;
+            color: white;
+        }
+        .status-error {
+            background: #e74c3c;
+            color: white;
+        }
+        .status-unknown {
+            background: #f39c12;
+            color: white;
+        }
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .config-table th, .config-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .config-table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+        }
+        .error-details {
+            background: rgba(231, 76, 60, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            margin: 10px 0;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+        }
+        .refresh-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 TargetProcess Debug Console</h1>
+        
+        <div class="debug-section">
+            <h2>Server Status</h2>
+            <div id="server-status" class="loading">Loading server status...</div>
+            <button class="refresh-btn" onclick="checkServerStatus()">Refresh Status</button>
+        </div>
+        
+        <div class="debug-section">
+            <h2>TargetProcess Connection</h2>
+            <div id="tp-status" class="loading">Testing TargetProcess connection...</div>
+            <button class="refresh-btn" onclick="testTPConnection()">Test Connection</button>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Configuration</h2>
+            <div id="config-details" class="loading">Loading configuration...</div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Actions</h2>
+            <button class="refresh-btn" onclick="window.location.href='/'">Go to Dashboard</button>
+            <button class="refresh-btn" onclick="window.location.href='/test'">Test CORS</button>
+        </div>
+    </div>
+
+    <script>
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                
+                document.getElementById('server-status').innerHTML = `
+                    <span class="status-indicator status-online">ONLINE</span>
+                    <p><strong>Version:</strong> ${data.version}</p>
+                    <p><strong>Environment:</strong> ${data.environment}</p>
+                    <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                `;
+                
+                // Show configuration
+                document.getElementById('config-details').innerHTML = `
+                    <table class="config-table">
+                        <tr><th>Setting</th><th>Value</th></tr>
+                        <tr><td>TP Domain</td><td>${data.config.domain || 'Not set'}</td></tr>
+                        <tr><td>Has Username</td><td>${data.config.hasUsername ? '✅ Yes' : '❌ No'}</td></tr>
+                        <tr><td>Has Password</td><td>${data.config.hasPassword ? '✅ Yes' : '❌ No'}</td></tr>
+                        <tr><td>Has API Token</td><td>${data.config.hasApiToken ? '✅ Yes' : '❌ No'}</td></tr>
+                    </table>
+                `;
+            } catch (error) {
+                document.getElementById('server-status').innerHTML = `
+                    <span class="status-indicator status-error">ERROR</span>
+                    <div class="error-details">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        async function testTPConnection() {
+            document.getElementById('tp-status').innerHTML = '<div class="loading">Testing connection...</div>';
+            
+            try {
+                const response = await fetch('/debug/tp');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('tp-status').innerHTML = `
+                        <span class="status-indicator status-online">CONNECTED</span>
+                        <p>✅ Successfully connected to TargetProcess</p>
+                    `;
+                } else {
+                    document.getElementById('tp-status').innerHTML = `
+                        <span class="status-indicator status-error">CONNECTION FAILED</span>
+                        <div class="error-details">
+                            <strong>Error:</strong> ${data.error}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('tp-status').innerHTML = `
+                    <span class="status-indicator status-error">REQUEST FAILED</span>
+                    <div class="error-details">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-load on page load
+        window.addEventListener('load', function() {
+            checkServerStatus();
+            setTimeout(testTPConnection, 1000);
+        });
+    </script>
+</body>
+</html>

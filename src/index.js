@@ -123,6 +123,23 @@ app.get('/debug/tp', async (req, res) => {
   }
 });
 
+// Public status endpoint (bypasses all auth)
+app.get('/status', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.json({
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    environment: process.env.NODE_ENV,
+    config: {
+      domain: process.env.TP_DOMAIN,
+      hasUsername: !!process.env.TP_USERNAME,
+      hasPassword: !!process.env.TP_PASSWORD,
+      hasApiToken: !!process.env.TP_API_TOKEN
+    }
+  });
+});
+
 // API routes
 app.use('/api', apiRoutes);
 
@@ -145,6 +162,11 @@ app.get('/', (req, res) => {
 // Serve embedded visualization
 app.get('/embed/:id', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'embed.html'));
+});
+
+// Debug page
+app.get('/debug', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'debug.html'));
 });
 
 // Initialize WebSocket server for real-time updates
