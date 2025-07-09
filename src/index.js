@@ -84,6 +84,15 @@ app.use('/static', express.static(path.join(__dirname, 'public'), {
   etag: true
 }));
 
+// Simple test endpoint (no auth required)
+app.get('/test', (req, res) => {
+  res.json({
+    message: 'CORS Test Successful',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
 // API routes
 app.use('/api', apiRoutes);
 
