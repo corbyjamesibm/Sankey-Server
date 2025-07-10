@@ -254,45 +254,68 @@ class TPService {
     try {
       console.log('Fetching portfolio flow data...');
       
-      // Fetch portfolios with related data
+      // Fetch projects (acting as portfolios in this system)
       const portfolios = await this.searchEntities({
-        type: 'Portfolio',
-        include: ['Epics', 'Project'],
+        type: 'Project',
+        include: ['Epics', 'UserStories'],
         take: 50
       });
 
-      console.log(`Found ${portfolios.length} portfolios`);
+      console.log(`Found ${portfolios?.Items?.length || 0} projects (portfolios)`);
 
-      // Fetch epics with their assignments
+      // Fetch portfolio epics if they exist
+      let portfolioEpics = null;
+      try {
+        portfolioEpics = await this.searchEntities({
+          type: 'PortfolioEpic',
+          include: ['Project', 'Epics'],
+          take: 100
+        });
+        console.log(`Found ${portfolioEpics?.Items?.length || 0} portfolio epics`);
+      } catch (error) {
+        console.log('Portfolio epics not available or empty');
+      }
+
+      // Fetch epics with their assignments (excluding UserStories - causes 400 error)
       const epics = await this.searchEntities({
         type: 'Epic',
-        include: ['Portfolio', 'UserStories', 'Features'],
+        include: ['Project', 'Features'],
         take: 100
       });
 
-      console.log(`Found ${epics.length} epics`);
+      console.log(`Found ${epics?.Items?.length || 0} epics`);
 
-      // Fetch user stories with team assignments
+      // Fetch features  
+      const features = await this.searchEntities({
+        type: 'Feature',
+        include: ['Epic', 'Project', 'UserStories'],
+        take: 200
+      });
+
+      console.log(`Found ${features?.Items?.length || 0} features`);
+
+      // Fetch user stories with team assignments (excluding Epic - causes 400 error)
       const userStories = await this.searchEntities({
         type: 'UserStory',
-        include: ['Epic', 'Team', 'Project', 'AssignedUser'],
+        include: ['Feature', 'Team', 'Project', 'AssignedUser'],
         take: 500
       });
 
-      console.log(`Found ${userStories.length} user stories`);
+      console.log(`Found ${userStories?.Items?.length || 0} user stories`);
 
-      // Fetch teams
+      // Fetch teams (excluding Members - causes 400 error)
       const teams = await this.searchEntities({
         type: 'Team',
-        include: ['Members'],
         take: 50
       });
 
-      console.log(`Found ${teams.length} teams`);
+      console.log(`Found ${teams?.Items?.length || 0} teams`);
 
       return {
-        portfolios,
+        portfolios, // These are actually Projects acting as portfolios
+        portfolioEpics,
         epics,
+        features,
         userStories,
         teams
       };

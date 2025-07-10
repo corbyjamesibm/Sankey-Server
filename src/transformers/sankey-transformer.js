@@ -12,19 +12,21 @@ class SankeyTransformer {
     
     try {
       // Extract different entity types from the raw data
-      const portfolios = rawData.portfolios || [];
-      const epics = rawData.epics || [];
-      const userStories = rawData.userStories || [];
-      const teams = rawData.teams || [];
+      const portfolios = rawData.portfolios?.Items || [];
+      const portfolioEpics = rawData.portfolioEpics?.Items || [];
+      const epics = rawData.epics?.Items || [];
+      const features = rawData.features?.Items || [];
+      const userStories = rawData.userStories?.Items || [];
+      const teams = rawData.teams?.Items || [];
 
-      console.log(`Transforming data: ${portfolios.length} portfolios, ${epics.length} epics, ${userStories.length} stories, ${teams.length} teams`);
+      console.log(`Transforming data: ${portfolios.length} projects (portfolios), ${portfolioEpics.length} portfolio epics, ${epics.length} epics, ${features.length} features, ${userStories.length} stories, ${teams.length} teams`);
 
       // Build the Sankey structure
       const sankeyData = {
         metadata: {
           title,
           subtitle,
-          stats: this.calculateStats(portfolios, epics, userStories, teams),
+          stats: this.calculateStats(portfolios, epics, features, userStories, teams),
           theme,
           timestamp: new Date().toISOString()
         },
@@ -47,11 +49,11 @@ class SankeyTransformer {
           type: this.getPortfolioType(portfolio),
           value: this.calculatePortfolioValue(portfolio, epics, userStories),
           id: portfolio.Id,
-          entityType: 'Portfolio',
+          entityType: 'Project',
           originalData: portfolio
         };
         sankeyData.data.nodes.push(node);
-        nodeMap.set(`Portfolio-${portfolio.Id}`, nodeIndex++);
+        nodeMap.set(`Project-${portfolio.Id}`, nodeIndex++);
       });
 
       // Level 1: Epics
@@ -162,7 +164,7 @@ class SankeyTransformer {
   }
 
   calculatePortfolioValue(portfolio, epics, userStories) {
-    const portfolioEpics = epics.filter(e => e.Portfolio && e.Portfolio.Id === portfolio.Id);
+    const portfolioEpics = epics.filter(e => e.Project && e.Project.Id === portfolio.Id);
     const portfolioStories = userStories.filter(s => {
       return portfolioEpics.some(e => s.Epic && s.Epic.Id === e.Id);
     });
@@ -266,10 +268,10 @@ class SankeyTransformer {
   createLinks(portfolios, epics, userStories, teams, workAllocations, nodeMap) {
     const links = [];
 
-    // Level 0 → Level 1: Portfolios to Epics
+    // Level 0 → Level 1: Projects (acting as Portfolios) to Epics
     epics.forEach(epic => {
-      if (epic.Portfolio) {
-        const sourceIndex = nodeMap.get(`Portfolio-${epic.Portfolio.Id}`);
+      if (epic.Project) {
+        const sourceIndex = nodeMap.get(`Project-${epic.Project.Id}`);
         const targetIndex = nodeMap.get(`Epic-${epic.Id}`);
         
         if (sourceIndex !== undefined && targetIndex !== undefined) {

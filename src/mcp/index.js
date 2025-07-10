@@ -86,9 +86,9 @@ class MCPClient {
   // Method for getting sample data structure
   async getSampleData() {
     try {
-      // Get a small sample of each entity type for testing
+      // Get a small sample of each entity type for testing (using Project instead of Portfolio)
       const [portfolios, epics, userStories, teams] = await Promise.all([
-        this.tpService.searchEntities({ type: 'Portfolio', take: 3 }),
+        this.tpService.searchEntities({ type: 'Project', take: 3 }),
         this.tpService.searchEntities({ type: 'Epic', take: 5 }),
         this.tpService.searchEntities({ type: 'UserStory', take: 10 }),
         this.tpService.searchEntities({ type: 'Team', take: 5 })
